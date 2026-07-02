@@ -178,3 +178,48 @@ docker ps
 ```
 docker logs -f [コンテナID]
 ```
+
+### Postman で API の動作確認をしたい場合
+
+#### 1. ログイン(トークン取得)
+
+- Method: POST
+- URL: http://localhost:4000/api/v1/auth/login
+- Headers: Content-Type: application/json
+- Body (raw / JSON):
+
+```
+{
+  "email": "user1@test.com",
+  "password": "password"
+}
+```
+
+- 200 が返り、レスポンスの token をコピーする
+
+#### 2. 認証が必要な API(例: Todo 一覧)
+
+- Method: GET
+- URL: http://localhost:4000/api/v1/todos
+- Headers: Authorization: Bearer \<上でコピーした token\>
+
+#### その他のエンドポイント
+
+| Method | Path                         | Body                     | 認証 |
+| ------ | ---------------------------- | ------------------------ | ---- |
+| POST   | /api/v1/auth/signup         | {name, email, password} | 不要 |
+| POST   | /api/v1/auth/login          | {email, password}       | 不要 |
+| GET    | /api/v1/auth/authentication | なし                     | 必要 |
+| GET    | /api/v1/todos               | なし                     | 必要 |
+| GET    | /api/v1/todos/{id}          | なし                     | 必要 |
+| POST   | /api/v1/todos               | {title, content}        | 必要 |
+| PUT    | /api/v1/todos/{id}          | {title, content}        | 必要 |
+| DELETE | /api/v1/todos/{id}          | なし                     | 必要 |
+
+Postman では、まずログインのリクエストを 1 つ作り、Tests タブに以下を書いておくとトークンを自動で変数に保存できて便利です:
+
+```
+pm.environment.set("token", pm.response.json().token);
+```
+
+その後、他のリクエストの Authorization ヘッダーで `Bearer {{token}}` と指定すれば手動コピペ不要になります。
